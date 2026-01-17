@@ -1,29 +1,47 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-// TODO Problem 2 - Write and run test cases and fix the code to match requirements.
+using System;
 
 [TestClass]
 public class PriorityQueueTests
 {
     [TestMethod]
-    // Scenario: 
-    // Expected Result: 
-    // Defect(s) Found: 
-    public void TestPriorityQueue_1()
+    // Scenario: Highest priority item dequeued first
+    // Expected Result: Item with highest priority returned
+    // Defect(s) Found: Highest priority not always selected
+    public void TestPriorityQueue_HighestPriority()
     {
-        var priorityQueue = new PriorityQueue();
-        Assert.Fail("Implement the test case and then remove this.");
+        var pq = new PriorityQueue();
+        pq.Enqueue("Low", 1);
+        pq.Enqueue("High", 10);
+        pq.Enqueue("Medium", 5);
+
+        Assert.AreEqual("High", pq.Dequeue());
     }
 
     [TestMethod]
-    // Scenario: 
-    // Expected Result: 
-    // Defect(s) Found: 
-    public void TestPriorityQueue_2()
+    // Scenario: FIFO when priorities are equal
+    // Expected Result: Items removed in insertion order
+    // Defect(s) Found: FIFO broken due to >= comparison
+    public void TestPriorityQueue_FIFOEqualPriority()
     {
-        var priorityQueue = new PriorityQueue();
-        Assert.Fail("Implement the test case and then remove this.");
+        var pq = new PriorityQueue();
+        pq.Enqueue("First", 5);
+        pq.Enqueue("Second", 5);
+        pq.Enqueue("Third", 5);
+
+        Assert.AreEqual("First", pq.Dequeue());
+        Assert.AreEqual("Second", pq.Dequeue());
+        Assert.AreEqual("Third", pq.Dequeue());
     }
 
-    // Add more test cases as needed below.
+    [TestMethod]
+    // Scenario: Dequeue from empty queue
+    // Expected Result: InvalidOperationException thrown
+    // Defect(s) Found: None
+    public void TestPriorityQueue_Empty()
+    {
+        var pq = new PriorityQueue();
+        var ex = Assert.ThrowsException<InvalidOperationException>(() => pq.Dequeue());
+        Assert.AreEqual("The queue is empty.", ex.Message);
+    }
 }
