@@ -1,3 +1,9 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
 using System.Text.Json;
 
 public static class SetsAndMaps
@@ -21,8 +27,30 @@ public static class SetsAndMaps
     /// <param name="words">An array of 2-character words (lowercase, no duplicates)</param>
     public static string[] FindPairs(string[] words)
     {
-        // TODO Problem 1 - ADD YOUR CODE HERE
-        return [];
+        // O(n): one pass + O(1) set lookups
+        var seen = new HashSet<string>();
+        var pairs = new List<string>();
+
+        foreach (var word in words)
+        {
+            if (word.Length != 2) continue; // defensive; assignment assumes 2 chars
+            if (word[0] == word[1])         // "aa" never matches anything
+            {
+                seen.Add(word);
+                continue;
+            }
+
+            var reversed = new string(new[] { word[1], word[0] });
+
+            if (seen.Contains(reversed))
+            {
+                pairs.Add($"{word} & {reversed}");
+            }
+
+            seen.Add(word);
+        }
+
+        return pairs.ToArray();
     }
 
     /// <summary>
@@ -43,6 +71,13 @@ public static class SetsAndMaps
         {
             var fields = line.Split(",");
             // TODO Problem 2 - ADD YOUR CODE HERE
+            if (fields.Length < 4) continue;
+
+            var degree = fields[3].Trim();
+            if (degree.Length == 0) continue;
+
+            degrees.TryGetValue(degree, out var count);
+            degrees[degree] = count + 1;
         }
 
         return degrees;
@@ -67,7 +102,59 @@ public static class SetsAndMaps
     public static bool IsAnagram(string word1, string word2)
     {
         // TODO Problem 3 - ADD YOUR CODE HERE
-        return false;
+        if (word1 is null || word2 is null) return false;
+
+        var a = StripSpacesAndLower(word1);
+        var b = StripSpacesAndLower(word2);
+
+        if (a.Length != b.Length) return false;
+
+        var counts = new Dictionary<char, int>(capacity: Math.Min(a.Length, 512));
+
+        foreach (var ch in a)
+        {
+            counts.TryGetValue(ch, out var count);
+            counts[ch] = count + 1;
+        }
+
+        foreach (var ch in b)
+        {
+            if (!counts.TryGetValue(ch, out var count))
+            {
+                return false;
+            }
+
+            count--;
+            if (count == 0)
+            {
+                counts.Remove(ch);
+            }
+            else
+            {
+                counts[ch] = count;
+            }
+        }
+
+        return counts.Count == 0;
+
+        static string StripSpacesAndLower(string s)
+        {
+            if (s.IndexOf(' ') < 0)
+            {
+                return s.ToLowerInvariant();
+            }
+
+            var buffer = new char[s.Length];
+            var idx = 0;
+
+            foreach (var ch in s)
+            {
+                if (ch == ' ') continue;
+                buffer[idx++] = char.ToLowerInvariant(ch);
+            }
+
+            return new string(buffer, 0, idx);
+        }
     }
 
     /// <summary>
@@ -101,6 +188,26 @@ public static class SetsAndMaps
         // on those classes so that the call to Deserialize above works properly.
         // 2. Add code below to create a string out each place a earthquake has happened today and its magitude.
         // 3. Return an array of these string descriptions.
-        return [];
+        if (featureCollection?.Features is null || featureCollection.Features.Count == 0)
+        {
+            return Array.Empty<string>();
+        }
+
+        var results = new List<string>(featureCollection.Features.Count);
+
+        foreach (var feature in featureCollection.Features)
+        {
+            var place = feature?.Properties?.Place ?? "Unknown location";
+            var mag = feature?.Properties?.Mag;
+
+            // Keep formatting consistent with the assignment example and tests.
+            string magText = mag.HasValue
+                ? mag.Value.ToString("0.##", CultureInfo.InvariantCulture)
+                : "N/A";
+
+            results.Add($"{place} - Mag {magText}");
+        }
+
+        return results.ToArray();
     }
 }

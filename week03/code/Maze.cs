@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 /// <summary>
 /// Defines a maze using a dictionary. The dictionary is provided by the
 /// user when the Maze object is created. The dictionary will contain the
@@ -32,7 +35,7 @@ public class Maze
     /// </summary>
     public void MoveLeft()
     {
-        // FILL IN CODE
+        TryMove(directionIndex: 0, dx: -1, dy: 0);
     }
 
     /// <summary>
@@ -41,7 +44,7 @@ public class Maze
     /// </summary>
     public void MoveRight()
     {
-        // FILL IN CODE
+        TryMove(directionIndex: 1, dx: 1, dy: 0);
     }
 
     /// <summary>
@@ -50,7 +53,7 @@ public class Maze
     /// </summary>
     public void MoveUp()
     {
-        // FILL IN CODE
+        TryMove(directionIndex: 2, dx: 0, dy: -1);
     }
 
     /// <summary>
@@ -59,11 +62,30 @@ public class Maze
     /// </summary>
     public void MoveDown()
     {
-        // FILL IN CODE
+        TryMove(directionIndex: 3, dx: 0, dy: 1);
     }
 
     public string GetStatus()
     {
         return $"Current location (x={_currX}, y={_currY})";
+    }
+
+    private void TryMove(int directionIndex, int dx, int dy)
+    {
+        var key = (_currX, _currY);
+
+        if (!_mazeMap.TryGetValue(key, out var moves) || moves is null || moves.Length < 4)
+        {
+            // Defensive: if the maze is missing a cell, treat it like a wall.
+            throw new InvalidOperationException("Can't go that way!");
+        }
+
+        if (!moves[directionIndex])
+        {
+            throw new InvalidOperationException("Can't go that way!");
+        }
+
+        _currX += dx;
+        _currY += dy;
     }
 }
